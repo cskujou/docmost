@@ -30,6 +30,12 @@ export interface ICreateInvite {
   groupIds: string[];
 }
 
+export interface ICreateMember {
+  name?: string;
+  email: string;
+  password: string;
+}
+
 export interface IInvitation {
   id: string;
   role: string;

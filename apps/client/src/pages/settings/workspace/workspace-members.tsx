@@ -11,6 +11,7 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { useAtom } from "jotai";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
+import CreateUserModal from "@/features/workspace/components/members/components/create-user-modal";
 
 export default function WorkspaceMembers() {
   const { t } = useTranslation();
@@ -62,7 +63,12 @@ export default function WorkspaceMembers() {
           withItemsBorders={false}
         />
 
-        {isAdmin && <WorkspaceInviteModal />}
+        {isAdmin && (
+          <Group gap="xs">
+            <CreateUserModal />
+            <WorkspaceInviteModal />
+          </Group>
+        )}
       </Group>
 
       <Space h="lg" />

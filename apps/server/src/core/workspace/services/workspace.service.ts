@@ -33,6 +33,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { QueueJob, QueueName } from '../../../integrations/queue/constants';
 import { Queue } from 'bullmq';
 import { generateRandomSuffixNumbers } from '../../../common/helpers';
+import { CreateUserDto } from '../../auth/dto/create-user.dto';
 
 @Injectable()
 export class WorkspaceService {
@@ -427,6 +428,50 @@ export class WorkspaceService {
       throw new NotFoundException('Hostname not found');
     }
     return { hostname: this.domainService.getUrl(hostname) };
+  }
+
+  async createMember(
+    createUserDto: CreateUserDto,
+    workspaceId: string,
+    trx?: KyselyTransaction,
+  ): Promise<User> {
+    const userCheck = await this.userRepo.findByEmail(
+      createUserDto.email,
+      workspaceId,
+    );
+
+    if (userCheck) {
+      throw new BadRequestException(
+        'An account with this email already exists in this workspace',
+      );
+    }
+
+    return await executeTx(
+      this.db,
+      async (trx) => {
+        // create user
+        const user = await this.userRepo.insertUser(
+          {
+            ...createUserDto,
+            workspaceId: workspaceId,
+            emailVerifiedAt: new Date(),
+          },
+          trx,
+        );
+
+        // add user to workspace
+        await this.addUserToWorkspace(user.id, workspaceId, undefined, trx);
+
+        // add user to default group
+        await this.groupUserRepo.addUserToDefaultGroup(
+          user.id,
+          workspaceId,
+          trx,
+        );
+        return user;
+      },
+      trx,
+    );
   }
 
   async deleteUser(

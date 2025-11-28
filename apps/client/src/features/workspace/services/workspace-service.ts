@@ -8,6 +8,7 @@ import {
   IPublicWorkspace,
   IInvitationLink,
   IVersion,
+  ICreateMember,
 } from "../types/workspace.types";
 import { IPagination, QueryParams } from "@/lib/types.ts";
 import { ISetupWorkspace } from "@/features/auth/types/auth.types.ts";
@@ -63,6 +64,11 @@ export async function getPendingInvitations(
 
 export async function createInvitation(data: ICreateInvite) {
   const req = await api.post("/workspace/invites/create", data);
+  return req.data;
+}
+
+export async function createMember(data: ICreateMember) {
+  const req = await api.post("/workspace/members/create", data);
   return req.data;
 }
 

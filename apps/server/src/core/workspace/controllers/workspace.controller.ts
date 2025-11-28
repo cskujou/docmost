@@ -34,6 +34,7 @@ import { FastifyReply } from 'fastify';
 import { EnvironmentService } from '../../../integrations/environment/environment.service';
 import { CheckHostnameDto } from '../dto/check-hostname.dto';
 import { RemoveWorkspaceUserDto } from '../dto/remove-workspace-user.dto';
+import { CreateUserDto } from '../../auth/dto/create-user.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspace')
@@ -104,6 +105,23 @@ export class WorkspaceController {
     }
 
     return this.workspaceService.getWorkspaceUsers(workspace.id, pagination);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('members/create')
+  async createWorkspaceMember(
+    @Body() createUserDto: CreateUserDto,
+    @AuthUser() user: User,
+    @AuthWorkspace() workspace: Workspace,
+  ) {
+    const ability = this.workspaceAbility.createForUser(user, workspace);
+    if (
+      ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Member)
+    ) {
+      throw new ForbiddenException();
+    }
+
+    return this.workspaceService.createMember(createUserDto, workspace.id);
   }
 
   @HttpCode(HttpStatus.OK)

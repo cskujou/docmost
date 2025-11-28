@@ -17,6 +17,7 @@ import {
   getWorkspacePublicData,
   getAppVersion,
   deleteWorkspaceMember,
+  createMember,
 } from "@/features/workspace/services/workspace-service";
 import { IPagination, QueryParams } from "@/lib/types.ts";
 import { notifications } from "@mantine/notifications";
@@ -26,6 +27,7 @@ import {
   IPublicWorkspace,
   IVersion,
   IWorkspace,
+  ICreateMember,
 } from "@/features/workspace/types/workspace.types.ts";
 import { IUser } from "@/features/user/types/user.types.ts";
 import { useTranslation } from "react-i18next";
@@ -119,6 +121,25 @@ export function useCreateInvitationMutation() {
       notifications.show({ message: t("Invitation sent") });
       queryClient.refetchQueries({
         queryKey: ["invitations"],
+      });
+    },
+    onError: (error) => {
+      const errorMessage = error["response"]?.data?.message;
+      notifications.show({ message: errorMessage, color: "red" });
+    },
+  });
+}
+
+export function useCreateMemberMutation() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, ICreateMember>({
+    mutationFn: (data) => createMember(data),
+    onSuccess: (data, variables) => {
+      notifications.show({ message: t("Member created successfully") });
+      queryClient.refetchQueries({
+        queryKey: ["workspaceMembers"],
       });
     },
     onError: (error) => {
